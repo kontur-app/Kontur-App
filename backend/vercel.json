@@ -1,0 +1,16 @@
+{
+  "buildCommand": null,
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.12",
+      "memory": 512,
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
+    }
+  ]
+}

@@ -1,7 +1,22 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const isDev = typeof window !== "undefined" && window.location.hostname === "localhost";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+if (!API_BASE) {
+  if (isDev) {
+    // In development, use local Django backend
+    // Temporarily set to http://localhost:8000/api
+  }
+}
+const _API_BASE: string = API_BASE || (isDev ? "http://localhost:8000/api" : "");
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  if (!_API_BASE) {
+    throw new Error(
+      "NEXT_PUBLIC_API_URL is not configured. " +
+      "Set it in Vercel Dashboard (e.g. https://your-backend.vercel.app/api) " +
+      "or create a .env.local file with NEXT_PUBLIC_API_URL=http://localhost:8000/api"
+    );
+  }
+  const res = await fetch(`${_API_BASE}${endpoint}`, {
     credentials: "include",
     headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,

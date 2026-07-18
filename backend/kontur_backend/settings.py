@@ -3,9 +3,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-)f-e3f+#_l@iivt(pn&)b=%-f(&_i-cacfypv6+ko*1(3j3hy)"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-)f-e3f+#_l@iivt(pn&)b=%-f(&_i-cacfypv6+ko*1(3j3hy)")
 
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["*"]
 
@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -35,14 +36,10 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://127.0.0.1:3002",
-]
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002"
+).split(",")
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -60,14 +57,10 @@ SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = False
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:3002",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://127.0.0.1:3002",
-]
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002"
+).split(",")
 
 ROOT_URLCONF = "kontur_backend.urls"
 
@@ -88,12 +81,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "kontur_backend.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES = {"default": dj_database_url.config(default=DATABASE_URL)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = []
 
@@ -104,6 +103,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
